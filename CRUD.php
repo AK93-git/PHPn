@@ -1,55 +1,33 @@
 <?php
-// База данных (в памяти для примера)
-$tasks = [];
+// Repository: php-crud-product-manager
+// Description: A simple CRUD application for managing products using SQLite.
 
-function addTask($task) {
-    global $tasks;
-    $tasks[] = $task;
+// Database connection
+$pdo = new PDO('sqlite::memory:'); // In-memory SQLite database for demonstration
+$pdo->exec("CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price REAL)");
+
+/**
+ * Add a product to the database.
+ */
+function addProduct($name, $price) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO products (name, price) VALUES (:name, :price)");
+    $stmt->execute(['name' => $name, 'price' => $price]);
 }
 
-function deleteTask($index) {
-    global $tasks;
-    if (isset($tasks[$index])) {
-        unset($tasks[$index]);
-        $tasks = array_values($tasks); // Переиндексация массива
+/**
+ * List all products from the database.
+ */
+function listProducts() {
+    global $pdo;
+    $stmt = $pdo->query("SELECT * FROM products");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo "ID: {$row['id']}, Name: {$row['name']}, Price: {$row['price']}\n";
     }
 }
 
-function listTasks() {
-    global $tasks;
-    if (empty($tasks)) {
-        echo "Задач нет.\n";
-        return;
-    }
-    foreach ($tasks as $index => $task) {
-        echo "$index: $task\n";
-    }
-}
-
-// Интерфейс командной строки
-while (true) {
-    echo "\n1. Добавить задачу\n2. Удалить задачу\n3. Показать задачи\n4. Выход\n";
-    $choice = readline("Выберите действие: ");
-
-    switch ($choice) {
-        case '1':
-            $task = readline("Введите задачу: ");
-            addTask($task);
-            echo "Задача добавлена!\n";
-            break;
-        case '2':
-            $index = readline("Введите номер задачи для удаления: ");
-            deleteTask($index);
-            echo "Задача удалена!\n";
-            break;
-        case '3':
-            listTasks();
-            break;
-        case '4':
-            echo "Выход...\n";
-            exit;
-        default:
-            echo "Неверный выбор. Попробуйте снова.\n";
-    }
-}
+// Example usage
+addProduct("Laptop", 999.99);
+addProduct("Smartphone", 499.99);
+listProducts();
 ?>
